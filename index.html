@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تحدي فك الخزنة للمراجعة</title>
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: #2c1d11; color: #fff; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
+        .container { background: #3d2817; border: 2px solid #5c3a21; border-radius: 16px; padding: 25px; max-width: 600px; width: 100%; box-shadow: 0 10px 30px rgba(0,0,0,0.6); text-align: center; position: relative; overflow: hidden; }
+        h1 { color: #d4a373; margin-top: 0; margin-bottom: 5px; }
+        .sub-title { color: #b5835a; font-size: 0.95rem; margin-bottom: 20px; font-weight: normal; }
+        .question-card { background: #4a321e; padding: 20px; border-radius: 12px; margin-bottom: 25px; font-size: 1.2rem; border: 1px solid #6b472a; text-align: right; }
+        .options { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .opt-btn { background: #5c3a21; color: #fff; border: 2px solid #6b472a; padding: 15px; border-radius: 10px; font-size: 1.1rem; cursor: pointer; transition: 0.2s; }
+        .opt-btn:hover { background: #6b472a; border-color: #d4a373; }
+        .opt-btn.selected { background: #283618; border-color: #606c38; color: #90be6d; font-weight: bold; }
+        .safe-box { background: #23160a; border: 4px solid #5c3a21; border-radius: 14px; padding: 20px; margin-top: 20px; display: flex; flex-direction: column; align-items: center; }
+        .safe-display { background: #000; color: #00ffcc; font-family: monospace; font-size: 2.5rem; width: 180px; height: 60px; display: flex; justify-content: center; align-items: center; border-radius: 8px; border: 2px solid #3d2817; letter-spacing: 5px; margin-bottom: 15px; }
+        .safe-input { background: #000; color: #00ffcc; font-family: monospace; font-size: 2rem; width: 220px; height: 55px; text-align: center; border-radius: 8px; border: 2px solid #5c3a21; margin-bottom: 15px; letter-spacing: 3px; }
+        .action-btn { background: #d4a373; color: #2c1d11; border: none; padding: 12px 30px; border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .action-btn:hover { background: #bc6c25; color: #fff; }
+        .instant-msg { margin-top: 10px; font-weight: bold; font-size: 1.1rem; min-height: 25px; }
+        .correct-text { color: #90be6d; }
+        .incorrect-text { color: #f28482; }
+
+        /* تصميم رسالة النجاح الخاصة مع الورود والقلوب */
+        .success-box {
+            background: rgba(40, 54, 24, 0.95);
+            border: 3px solid #90be6d;
+            border-radius: 14px;
+            padding: 25px;
+            margin-top: 15px;
+            animation: popIn 0.5s ease-out;
+            box-shadow: 0 0 20px rgba(144, 190, 109, 0.4);
+        }
+        .success-title {
+            font-size: 1.5rem;
+            color: #ffdda1;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        .decorations {
+            font-size: 2.2rem;
+            animation: pulse 1.5s infinite alternate;
+            margin-top: 10px;
+        }
+        @keyframes popIn {
+            0% { transform: scale(0.7); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.15); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>تحدي فك الخزنة للمراجعة 🔒</h1>
+        <div class="sub-title">أجيبي عن الأسئلة واجمعي أرقام الخزنة لفك القفل في النهاية</div>
+        
+        <!-- قسم عرض الأسئلة سؤالاً تلو الآخر -->
+        <div id="quiz-section">
+            <div class="question-card" id="questionText"></div>
+            <div class="options" id="optionsContainer"></div>
+            
+            <!-- رسالة التحقق الفورية -->
+            <div class="instant-msg" id="instantMsg"></div>
+
+            <div class="safe-box">
+                <div class="safe-display" id="safeDisplay">--</div>
+                <button class="action-btn" id="nextBtn" onclick="nextQuestion()" style="display: none;">السؤال التالي ➡️</button>
+            </div>
+        </div>
+
+        <!-- صندوق الخزنة النهائي -->
+        <div class="safe-box" id="finalSafeSection" style="display: none;">
+            <div style="margin-bottom: 10px; color: #d4a373; font-weight: bold;">أدخلي رقم الخزنة الذي قمتِ بجمعه لفتح القفل 🔒:</div>
+            <input type="text" id="safeInput" class="safe-input" placeholder="---">
+            <br>
+            <button class="action-btn" id="unlockBtn" onclick="checkFinalSafe()">فتح الخزنة 🔓</button>
+            
+            <div id="finalResultArea" style="width: 100%;"></div>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                q: "1. (البطاقة الأولى) ما ناتج: (-3) × (-4) - 7 ؟",
+                options: [
+                    { text: "أ) 33", val: "33" },
+                    { text: "ب) 5", val: "5" },
+                    { text: "ج) 3", val: "3" },
+                    { text: "د) 4", val: "4" }
+                ],
+                correctVal: "5"
+            },
+            {
+                q: "2. (البطاقة الثانية) إذا كان 2س + 6 = 14، فما قيمة س؟",
+                options: [
+                    { text: "أ) 4", val: "4" },
+                    { text: "ب) 8", val: "8" },
+                    { text: "ج) 10", val: "10" },
+                    { text: "د) 2", val: "2" }
+                ],
+                correctVal: "4"
+            },
+            {
+                q: "3. (البطاقة الثالثة) مستطيل مساحته 24 سم² وطوله 8 سم، ما عرضه؟",
+                options: [
+                    { text: "أ) 16", val: "16" },
+                    { text: "ب) 3", val: "3" },
+                    { text: "ج) 32", val: "32" },
+                    { text: "د) 6", val: "6" }
+                ],
+                correctVal: "3"
+            },
+            {
+                q: "4. (البطاقة الرابعة) ما الوسيط للقيم: 2، 6، 4، 9، 8 ؟",
+                options: [
+                    { text: "أ) 4", val: "4" },
+                    { text: "ب) 8", val: "8" },
+                    { text: "ج) 6", val: "6" },
+                    { text: "د) 5", val: "5" }
+                ],
+                correctVal: "6"
+            },
+            {
+                q: "5. (البطاقة الخامسة) ما حل المعادلة التالية: 11س - 4 = 29 ؟",
+                options: [
+                    { text: "أ) 3", val: "3" },
+                    { text: "ب) 33", val: "33" },
+                    { text: "ج) 11", val: "11" },
+                    { text: "د) 4", val: "4" }
+                ],
+                correctVal: "3"
+            }
+        ];
+
+        let currentIndex = 0;
+        let isCorrectAnswerSelected = false;
+        const finalSecretCode = "54363"; 
+
+        function loadQuestion() {
+            const q = questions[currentIndex];
+            document.getElementById("questionText").innerText = q.q;
+            
+            const optContainer = document.getElementById("optionsContainer");
+            optContainer.innerHTML = "";
+            isCorrectAnswerSelected = false;
+            document.getElementById("safeDisplay").innerText = "--";
+            document.getElementById("instantMsg").innerText = "";
+            document.getElementById("nextBtn").style.display = "none";
+
+            q.options.forEach(opt => {
+                const btn = document.createElement("button");
+                btn.className = "opt-btn";
+                btn.innerText = opt.text;
+                btn.onclick = () => selectOption(opt.val, q.correctVal, btn);
+                optContainer.appendChild(btn);
+            });
+        }
+
+        function selectOption(val, correctVal, btn) {
+            document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+
+            const msgDiv = document.getElementById("instantMsg");
+
+            if (val === correctVal) {
+                isCorrectAnswerSelected = true;
+                msgDiv.className = "instant-msg correct-text";
+                msgDiv.innerText = "🎉 إجابة صحيحة!";
+                
+                document.getElementById("safeDisplay").innerText = val;
+                document.getElementById("nextBtn").style.display = "inline-block";
+            } else {
+                isCorrectAnswerSelected = false;
+                msgDiv.className = "instant-msg incorrect-text";
+                msgDiv.innerText = "❌ إجابة خاطئة، جربي مجدداً!";
+                document.getElementById("safeDisplay").innerText = "خطأ";
+                document.getElementById("nextBtn").style.display = "none";
+            }
+        }
+
+        function nextQuestion() {
+            if (!isCorrectAnswerSelected) return;
+
+            currentIndex++;
+            if (currentIndex < questions.length) {
+                loadQuestion();
+            } else {
+                document.getElementById("quiz-section").style.display = "none";
+                document.getElementById("finalSafeSection").style.display = "flex";
+            }
+        }
+
+        function checkFinalSafe() {
+            const entered = document.getElementById("safeInput").value.trim();
+            const resArea = document.getElementById("finalResultArea");
+
+            if (entered === "") {
+                resArea.innerHTML = `<div class="instant-msg incorrect-text">الرجاء كتابة رقم الخزنة أولاً!</div>`;
+                return;
+            }
+
+            if (entered === finalSecretCode) {
+                // إخفاء زر الفتح بعد النجاح لعرض الرسالة الأنيقة
+                document.getElementById("unlockBtn").style.display = "none";
+                document.getElementById("safeInput").disabled = true;
+
+                resArea.innerHTML = `
+                    <div class="success-box">
+                        <div class="decorations">🌸 💖 🌷 💖 🌸</div>
+                        <div class="success-title">أحسنتن ياخبيرات نافس ، تحصلن على ⭐</div>
+                        <div class="decorations">✨ 🔓 🎉 🔓 ✨</div>
+                    </div>
+                `;
+            } else {
+                resArea.innerHTML = `<div class="instant-msg incorrect-text">❌ الرمز خاطئ! جربي مرة أخرى.</div>`;
+            }
+        }
+
+        loadQuestion();
+    </script>
+</body>
+</html>
